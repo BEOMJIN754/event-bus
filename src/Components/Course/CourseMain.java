@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 
+import Components.Student.Student;
 import Framework.Event;
 import Framework.EventId;
 import Framework.EventQueue;
@@ -43,6 +44,10 @@ public class CourseMain {
 				case DeleteCourses:
 					printLogEvent("Get", event);
 					eventBus.sendEvent(new Event(EventId.ClientOutput, deleteCourse(coursesList, event.getMessage())));
+					break;
+				case ValidateCourse:
+					printLogEvent("Get", event);
+					eventBus.sendEvent(new Event(EventId.Registration, validateCourse(coursesList, event.getMessage())));
 					break;
 				case QuitTheSystem:
 					eventBus.unRegister(componentId);
@@ -84,5 +89,30 @@ public class CourseMain {
 			}
 		}
 		return "Course with ID" + courseId + "does not exist";
+	}
+	
+	private static String validateCourse(CourseComponent coursesList, String message) {
+		String[] tokens = message.split(" ");
+		String studentId= tokens[0];
+		String courseId= tokens[1];
+		
+		Course course = null;
+		for(Course c : coursesList.getCourseList()) {
+			if(c.match(courseId)) {
+				course = c;
+				break;
+			}
+		}
+		if(course==null) return "Validation failed: Course with ID " + courseId + " does not exist.";
+		
+		for(int i=1;i<tokens.length;i++) {
+			for(int j=0;j<course.prerequisiteCoursesList.size();j++) {
+				if(tokens[i].equals(course.prerequisiteCoursesList.get(j))||
+						tokens[i].equals(courseId)){
+					return "Registration failed."; 
+				}
+			}
+		}
+		return studentId+ " " + courseId;
 	}
 }

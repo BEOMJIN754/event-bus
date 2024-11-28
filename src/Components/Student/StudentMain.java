@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
+import java.util.ArrayList;
 
 import Framework.Event;
 import Framework.EventId;
@@ -45,7 +46,10 @@ public class StudentMain {
 					printLogEvent("Get", event);
 					eventBus.sendEvent(new Event(EventId.ClientOutput, deleteStudent(studentsList, event.getMessage())));
 					break;
-				
+				case ValidateStudent:
+					printLogEvent("Get", event);
+					eventBus.sendEvent(new Event(EventId.ValidateCourse, validateStudent(studentsList, event.getMessage())));
+					break;
 				case QuitTheSystem:
 					printLogEvent("Get", event);
 					eventBus.unRegister(componentId);
@@ -89,4 +93,21 @@ public class StudentMain {
 		return "Student with ID" + studentId + "does not exist";
 	}
 
+	private static String validateStudent(StudentComponent studentsList, String message) {
+		String[] tokens = message.split(" ");
+		String studentId= tokens[0];
+		String courseId= tokens[1];
+		
+		Student student = null;
+		for(Student s:studentsList.getStudentList()) {
+			if(s.match(studentId)) {
+				student = s;
+				break;
+			}
+		}if(student==null)return "Validation failed: Student with ID " + studentId + " does not exist.";
+		
+		String completedCourse = String.join(" ", student.completedCoursesList);
+		
+		return message+" "+completedCourse;
+	}
 }
